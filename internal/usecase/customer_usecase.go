@@ -11,19 +11,19 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type customerUseCase struct {
+type CustomerUseCase struct {
 	repo      repository.CustomerRepository
 	validator *validator.Validate
 }
 
-func NewCustomerUseCase(customerRepo repository.CustomerRepository) *customerUseCase {
-	return &customerUseCase{
+func NewCustomerUseCase(customerRepo repository.CustomerRepository) *CustomerUseCase {
+	return &CustomerUseCase{
 		repo:      customerRepo,
 		validator: validator.New(),
 	}
 }
 
-func (uc *customerUseCase) Register(req *model.RegisterCustomerRequest) (*model.CustomerResponse, error) {
+func (uc *CustomerUseCase) Register(req *model.RegisterCustomerRequest) (*model.CustomerResponse, error) {
 	if err := uc.validator.Struct(req); err != nil {
 		return nil, domain.ErrInvalidInput
 	}
@@ -64,7 +64,7 @@ func (uc *customerUseCase) Register(req *model.RegisterCustomerRequest) (*model.
 	}, nil
 }
 
-func (uc *customerUseCase) GetCustomerProfile(id string) (*model.CustomerResponse, error) {
+func (uc *CustomerUseCase) GetCustomerProfileByID(id string) (*model.CustomerResponse, error) {
 	customer, err := uc.repo.FindByID(id)
 	if err != nil {
 		if err == domain.ErrNotFound {
@@ -88,7 +88,7 @@ func (uc *customerUseCase) GetCustomerProfile(id string) (*model.CustomerRespons
 	}, nil
 }
 
-func (uc *customerUseCase) GetCustomerProfileByNIK(nik string) (*model.CustomerResponse, error) {
+func (uc *CustomerUseCase) GetCustomerProfileByNIK(nik string) (*model.CustomerResponse, error) {
 	customer, err := uc.repo.FindByNIK(nik)
 	if err != nil {
 		if err == domain.ErrNotFound {
