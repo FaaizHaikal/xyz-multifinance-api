@@ -31,7 +31,7 @@ func LoadConfig() (*Config, error) {
 	}
 
 	if cfg.DBUser == "" || cfg.DBPassword == "" || cfg.DBHost == "" || cfg.DBPort == "" || cfg.DBName == "" || cfg.APIPort == "" {
-		return nil, fmt.Errorf("missing required environment variables.")
+		return nil, fmt.Errorf("missing required environment variables")
 	}
 
 	return cfg, nil
