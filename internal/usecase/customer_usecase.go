@@ -4,20 +4,24 @@ import (
 	"fmt"
 	"xyz-multifinance-api/internal/domain"
 	"xyz-multifinance-api/internal/model"
-	"xyz-multifinance-api/internal/repository"
 )
 
-type CustomerUseCase struct {
-	repo *repository.CustomerRepository
+type CustomerUseCase interface {
+	GetCustomerProfileByID(id string) (*model.CustomerResponse, error)
+	GetCustomerProfileByNIK(nik string) (*model.CustomerResponse, error)
 }
 
-func NewCustomerUseCase(customerRepo *repository.CustomerRepository) *CustomerUseCase {
-	return &CustomerUseCase{
+type customerUseCase struct {
+	repo domain.CustomerRepository
+}
+
+func NewCustomerUseCase(customerRepo domain.CustomerRepository) *customerUseCase {
+	return &customerUseCase{
 		repo: customerRepo,
 	}
 }
 
-func (uc *CustomerUseCase) GetCustomerProfileByID(id string) (*model.CustomerResponse, error) {
+func (uc *customerUseCase) GetCustomerProfileByID(id string) (*model.CustomerResponse, error) {
 	customer, err := uc.repo.FindByID(id)
 	if err != nil {
 		if err == domain.ErrNotFound {
@@ -41,7 +45,7 @@ func (uc *CustomerUseCase) GetCustomerProfileByID(id string) (*model.CustomerRes
 	}, nil
 }
 
-func (uc *CustomerUseCase) GetCustomerProfileByNIK(nik string) (*model.CustomerResponse, error) {
+func (uc *customerUseCase) GetCustomerProfileByNIK(nik string) (*model.CustomerResponse, error) {
 	customer, err := uc.repo.FindByNIK(nik)
 	if err != nil {
 		if err == domain.ErrNotFound {

@@ -12,10 +12,10 @@ import (
 )
 
 type TransactionHandler struct {
-	useCase *usecase.TransactionUseCase
+	useCase usecase.TransactionUseCase
 }
 
-func NewTransactionHandler(router *gin.RouterGroup, transactionUseCase *usecase.TransactionUseCase) {
+func NewTransactionHandler(router *gin.RouterGroup, transactionUseCase usecase.TransactionUseCase) {
 	handler := &TransactionHandler{useCase: transactionUseCase}
 
 	router.POST("/transactions", handler.CreateTransaction)

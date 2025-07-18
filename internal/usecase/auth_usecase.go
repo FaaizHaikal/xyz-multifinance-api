@@ -7,28 +7,33 @@ import (
 	"xyz-multifinance-api/config"
 	"xyz-multifinance-api/internal/domain"
 	"xyz-multifinance-api/internal/model"
-	"xyz-multifinance-api/internal/repository"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type AuthUseCase struct {
-	customerRepo *repository.CustomerRepository
+type AuthUseCase interface {
+	Login(req *model.LoginRequest) (*model.LoginResponse, error)
+	Register(req *model.RegisterCustomerRequest) (*model.CustomerResponse, error)
+	RefreshToken(req *model.RefreshTokenRequest) (*model.LoginResponse, error)
+}
+
+type authUseCase struct {
+	customerRepo domain.CustomerRepository
 	cfg          *config.Config
 	validator    *validator.Validate
 }
 
-func NewAuthUseCase(customerRepo *repository.CustomerRepository, cfg *config.Config) *AuthUseCase {
-	return &AuthUseCase{
+func NewAuthUseCase(customerRepo domain.CustomerRepository, cfg *config.Config) AuthUseCase {
+	return &authUseCase{
 		customerRepo: customerRepo,
 		cfg:          cfg,
 		validator:    validator.New(),
 	}
 }
 
-func (uc *AuthUseCase) Login(req *model.LoginRequest) (*model.LoginResponse, error) {
+func (uc *authUseCase) Login(req *model.LoginRequest) (*model.LoginResponse, error) {
 	customer, err := uc.customerRepo.FindByNIK(req.NIK)
 	if err != nil {
 		if err == domain.ErrNotFound {
@@ -60,7 +65,7 @@ func (uc *AuthUseCase) Login(req *model.LoginRequest) (*model.LoginResponse, err
 	}, nil
 }
 
-func (uc *AuthUseCase) Register(req *model.RegisterCustomerRequest) (*model.CustomerResponse, error) {
+func (uc *authUseCase) Register(req *model.RegisterCustomerRequest) (*model.CustomerResponse, error) {
 	if err := uc.validator.Struct(req); err != nil {
 		return nil, domain.ErrInvalidInput
 	}
@@ -110,7 +115,7 @@ func (uc *AuthUseCase) Register(req *model.RegisterCustomerRequest) (*model.Cust
 	}, nil
 }
 
-func (uc *AuthUseCase) RefreshToken(req *model.RefreshTokenRequest) (*model.LoginResponse, error) {
+func (uc *authUseCase) RefreshToken(req *model.RefreshTokenRequest) (*model.LoginResponse, error) {
 	// Parse and validate
 	token, err := jwt.ParseWithClaims(req.RefreshToken, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(uc.cfg.JWTSecret), nil
@@ -144,7 +149,7 @@ func (uc *AuthUseCase) RefreshToken(req *model.RefreshTokenRequest) (*model.Logi
 	}, nil
 }
 
-func (uc *AuthUseCase) generateToken(customerID, nik string, expiryDuration time.Duration) (string, time.Time, error) {
+func (uc *authUseCase) generateToken(customerID, nik string, expiryDuration time.Duration) (string, time.Time, error) {
 	expiresAt := time.Now().Add(expiryDuration)
 	claims := &model.Claims{
 		CustomerID: customerID,

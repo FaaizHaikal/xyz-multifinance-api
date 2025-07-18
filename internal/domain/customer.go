@@ -16,3 +16,9 @@ type Customer struct {
 	CreatedAt      time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt      time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
+
+type CustomerRepository interface {
+	Create(customer *Customer) error
+	FindByID(id string) (*Customer, error)
+	FindByNIK(nik string) (*Customer, error)
+}

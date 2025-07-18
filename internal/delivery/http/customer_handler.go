@@ -10,10 +10,10 @@ import (
 )
 
 type CustomerHandler struct {
-	useCase *usecase.CustomerUseCase
+	useCase usecase.CustomerUseCase
 }
 
-func NewCustomerHandler(router *gin.RouterGroup, useCase *usecase.CustomerUseCase) {
+func NewCustomerHandler(router *gin.RouterGroup, useCase usecase.CustomerUseCase) {
 	handler := &CustomerHandler{useCase: useCase}
 
 	router.GET("/customers/:customer_id", handler.GetCustomerByID)

@@ -5,22 +5,22 @@ import (
 	"fmt"
 	"time"
 	"xyz-multifinance-api/internal/domain"
-	"xyz-multifinance-api/internal/infrastructure/redis"
 	"xyz-multifinance-api/pkg/utils"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-type CreditLimitRepository struct {
-	db *gorm.DB
+type creditLimitRepository struct {
+	db         *gorm.DB
+	cacheStore domain.CacheStore
 }
 
-func NewCreditLimitRepository(db *gorm.DB) *CreditLimitRepository {
-	return &CreditLimitRepository{db: db}
+func NewCreditLimitRepository(db *gorm.DB, cacheStore domain.CacheStore) domain.CreditLimitRepository {
+	return &creditLimitRepository{db: db, cacheStore: cacheStore}
 }
 
-func (r *CreditLimitRepository) CreateCreditLimit(creditLimit *domain.CreditLimit) error {
+func (r *creditLimitRepository) CreateCreditLimit(creditLimit *domain.CreditLimit) error {
 	creditLimit.ID = uuid.New().String()
 
 	result := r.db.Create(creditLimit)
@@ -37,15 +37,15 @@ func (r *CreditLimitRepository) CreateCreditLimit(creditLimit *domain.CreditLimi
 	}
 
 	// Cache for 1 hour
-	redis.Set(fmt.Sprintf("credit_limit:%s:%d", creditLimit.CustomerID, creditLimit.TenorMonths), creditLimitJSON, time.Hour)
+	r.cacheStore.Set(fmt.Sprintf("credit_limit:%s:%d", creditLimit.CustomerID, creditLimit.TenorMonths), creditLimitJSON, time.Hour)
 
 	return nil
 }
 
-func (r *CreditLimitRepository) GetCreditLimitByCustomerAndTenor(customerID string, tenorMonths int) (*domain.CreditLimit, error) {
+func (r *creditLimitRepository) GetCreditLimitByCustomerAndTenor(customerID string, tenorMonths int) (*domain.CreditLimit, error) {
 	// Try to get from cache first
 	cacheKey := fmt.Sprintf("credit_limit:%s:%d", customerID, tenorMonths)
-	if cachedLimitJSON, err := redis.Get(cacheKey); err == nil {
+	if cachedLimitJSON, err := r.cacheStore.Get(cacheKey); err == nil {
 		creditLimit := &domain.CreditLimit{}
 		if err := utils.UnmarshalJSON(cachedLimitJSON, creditLimit); err == nil {
 			return creditLimit, nil
@@ -67,12 +67,12 @@ func (r *CreditLimitRepository) GetCreditLimitByCustomerAndTenor(customerID stri
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal credit limit for cache: %w", err)
 	}
-	redis.Set(cacheKey, creditLimitJSON, time.Hour)
+	r.cacheStore.Set(cacheKey, creditLimitJSON, time.Hour)
 
 	return creditLimit, nil
 }
 
-func (r *CreditLimitRepository) UpdateCreditLimit(creditLimit *domain.CreditLimit) error {
+func (r *creditLimitRepository) UpdateCreditLimit(creditLimit *domain.CreditLimit) error {
 	result := r.db.Save(creditLimit)
 	if result.Error != nil {
 		return fmt.Errorf("failed to update credit limit: %w", result.Error)
@@ -82,12 +82,12 @@ func (r *CreditLimitRepository) UpdateCreditLimit(creditLimit *domain.CreditLimi
 	}
 
 	// Delete cache after update
-	redis.Del(fmt.Sprintf("credit_limit:%s:%d", creditLimit.CustomerID, creditLimit.TenorMonths))
+	r.cacheStore.Del(fmt.Sprintf("credit_limit:%s:%d", creditLimit.CustomerID, creditLimit.TenorMonths))
 
 	return nil
 }
 
-func (r *CreditLimitRepository) GetCreditLimitsByCustomerID(customerID string) ([]domain.CreditLimit, error) {
+func (r *creditLimitRepository) GetCreditLimitsByCustomerID(customerID string) ([]domain.CreditLimit, error) {
 	var creditLimits []domain.CreditLimit
 	result := r.db.Where("customer_id = ?", customerID).Find(&creditLimits)
 	if result.Error != nil {

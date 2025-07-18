@@ -14,3 +14,9 @@ type Transaction struct {
 	CreatedAt         time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt         time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
+
+type TransactionRepository interface {
+	CreateTransaction(transaction *Transaction) error
+	GetTransactionByContractNumber(contractNumber string) (*Transaction, error)
+	GetTransactionsByCustomerID(customerID string) ([]Transaction, error)
+}

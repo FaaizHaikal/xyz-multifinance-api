@@ -9,15 +9,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type TransactionRepository struct {
+type transactionRepository struct {
 	db *gorm.DB
 }
 
-func NewTransactionRepository(db *gorm.DB) *TransactionRepository {
-	return &TransactionRepository{db: db}
+func NewTransactionRepository(db *gorm.DB) domain.TransactionRepository {
+	return &transactionRepository{db: db}
 }
 
-func (r *TransactionRepository) CreateTransaction(transaction *domain.Transaction) error {
+func (r *transactionRepository) CreateTransaction(transaction *domain.Transaction) error {
 	transaction.ID = uuid.New().String()
 
 	result := r.db.Create(transaction)
@@ -32,7 +32,7 @@ func (r *TransactionRepository) CreateTransaction(transaction *domain.Transactio
 	return nil
 }
 
-func (r *TransactionRepository) GetTransactionByContractNumber(contractNumber string) (*domain.Transaction, error) {
+func (r *transactionRepository) GetTransactionByContractNumber(contractNumber string) (*domain.Transaction, error) {
 	transaction := &domain.Transaction{}
 
 	result := r.db.Where("contract_number = ?", contractNumber).First(transaction)
@@ -47,7 +47,7 @@ func (r *TransactionRepository) GetTransactionByContractNumber(contractNumber st
 	return transaction, nil
 }
 
-func (r *TransactionRepository) GetTransactionsByCustomerID(customerID string) ([]domain.Transaction, error) {
+func (r *transactionRepository) GetTransactionsByCustomerID(customerID string) ([]domain.Transaction, error) {
 	var transactions []domain.Transaction
 
 	result := r.db.Where("customer_id = ?", customerID).Find(&transactions)
