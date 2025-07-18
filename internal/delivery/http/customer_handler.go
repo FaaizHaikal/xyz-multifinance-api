@@ -5,6 +5,7 @@ import (
 	"xyz-multifinance-api/internal/domain"
 	"xyz-multifinance-api/internal/model"
 	"xyz-multifinance-api/internal/usecase"
+	"xyz-multifinance-api/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,15 +14,12 @@ type CustomerHandler struct {
 	useCase *usecase.CustomerUseCase
 }
 
-func NewCustomerHandler(router *gin.Engine, useCase *usecase.CustomerUseCase) {
+func NewCustomerHandler(router *gin.RouterGroup, useCase *usecase.CustomerUseCase) {
 	handler := &CustomerHandler{useCase: useCase}
 
-	v1 := router.Group("/api/v1")
-	{
-		v1.POST("/customers", handler.RegisterCustomer)
-		v1.GET("/customers/:id", handler.GetCustomerByID)
-		v1.GET("/customers/nik/:nik", handler.GetCustomerByNIK)
-	}
+	router.POST("/customers", handler.RegisterCustomer)
+	router.GET("/customers/:customer_id", handler.GetCustomerByID)
+	router.GET("/customers/nik/:nik", handler.GetCustomerByNIK)
 }
 
 func (h *CustomerHandler) RegisterCustomer(ctx *gin.Context) {
@@ -51,7 +49,7 @@ func (h *CustomerHandler) RegisterCustomer(ctx *gin.Context) {
 }
 
 func (h *CustomerHandler) GetCustomerByID(ctx *gin.Context) {
-	id := ctx.Param("id")
+	id := ctx.Param("customer_id")
 	if id == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "customer ID is required"})
 		return
@@ -82,6 +80,27 @@ func (h *CustomerHandler) GetCustomerByNIK(ctx *gin.Context) {
 	if err != nil {
 		if err == domain.ErrNotFound {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "customer not found"})
+		} else {
+			ctx.Error(err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		}
+		return
+	}
+
+	ctx.JSON(http.StatusOK, customerRes)
+}
+
+func (h *CustomerHandler) GetMyCustomerProfile(ctx *gin.Context) {
+	customerID, exists := middleware.GetCustomerIDFromContext(ctx)
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Customer ID not found in token."})
+		return
+	}
+
+	customerRes, err := h.useCase.GetCustomerProfileByID(customerID)
+	if err != nil {
+		if err == domain.ErrNotFound {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "customer not found (from token)"})
 		} else {
 			ctx.Error(err)
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})

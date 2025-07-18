@@ -6,6 +6,7 @@ import (
 	"xyz-multifinance-api/internal/domain"
 	"xyz-multifinance-api/internal/model"
 	"xyz-multifinance-api/internal/usecase"
+	"xyz-multifinance-api/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,15 +15,13 @@ type TransactionHandler struct {
 	useCase *usecase.TransactionUseCase
 }
 
-func NewTransactionHandler(router *gin.Engine, transactionUseCase *usecase.TransactionUseCase) {
+func NewTransactionHandler(router *gin.RouterGroup, transactionUseCase *usecase.TransactionUseCase) {
 	handler := &TransactionHandler{useCase: transactionUseCase}
 
-	v1 := router.Group("/api/v1")
-	{
-		v1.POST("/transactions", handler.CreateTransaction)
-		v1.GET("/transactions/contract/:contract_number", handler.GetTransactionByContractNumber)
-		v1.GET("/customers/:id/transactions", handler.GetTransactionsByCustomerID)
-	}
+	router.POST("/transactions", handler.CreateTransaction)
+	router.GET("/transactions/contract/:contract_number", handler.GetTransactionByContractNumber)
+	router.GET("/customers/:customer_id/transactions", handler.GetTransactionsByCustomerID)
+	router.GET("/customers/me/transactions", handler.GetMyTransactions)
 }
 
 func (h *TransactionHandler) CreateTransaction(ctx *gin.Context) {
@@ -94,6 +93,31 @@ func (h *TransactionHandler) GetTransactionsByCustomerID(ctx *gin.Context) {
 
 	if len(transactionsRes) == 0 {
 		ctx.JSON(http.StatusOK, []interface{}{}) // No transactions found
+		return
+	}
+	ctx.JSON(http.StatusOK, transactionsRes)
+}
+
+func (h *TransactionHandler) GetMyTransactions(ctx *gin.Context) {
+	customerID, exists := middleware.GetCustomerIDFromContext(ctx)
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Customer ID not found in token."})
+		return
+	}
+
+	transactionsRes, err := h.useCase.GetTransactionsByCustomerID(customerID)
+	if err != nil {
+		if errors.Is(err, domain.ErrNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "transactions not found for this user"})
+		} else {
+			ctx.Error(err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		}
+		return
+	}
+
+	if len(transactionsRes) == 0 {
+		ctx.JSON(http.StatusOK, []interface{}{})
 		return
 	}
 	ctx.JSON(http.StatusOK, transactionsRes)

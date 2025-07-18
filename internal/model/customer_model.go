@@ -19,6 +19,7 @@ type CustomerResponse struct {
 type RegisterCustomerRequest struct {
 	NIK            string  `json:"nik" validate:"required,len=16"`
 	FullName       string  `json:"full_name" validate:"required,max=100"`
+	Password       string  `json:"password" validate:"required,min=8"`
 	LegalName      string  `json:"legal_name" validate:"required,max=100"`
 	BirthPlace     string  `json:"birth_place" validate:"required,max=100"`
 	BirthDate      string  `json:"birth_date" validate:"required,datetime=2006-01-02"` // Date format YYYY-MM-DD

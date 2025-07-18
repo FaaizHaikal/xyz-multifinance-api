@@ -3,17 +3,23 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	DBUser     string
-	DBPassword string
-	DBHost     string
-	DBPort     string
-	DBName     string
-	APIPort    string
+	DBUser             string
+	DBPassword         string
+	DBHost             string
+	DBPort             string
+	DBName             string
+	APIPort            string
+	JWTSecret          string
+	JWTRefreshSecret   string
+	AccessTokenExpiry  time.Duration
+	RefreshTokenExpiry time.Duration
 }
 
 func LoadConfig() (*Config, error) {
@@ -21,13 +27,29 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("error loading .env file: %w", err)
 	}
 
+	accessTokenExpiryStr := getEnv("ACCESS_TOKEN_EXPIRY_MINUTES", "15")
+	accessTokenExpiryMinutes, err := strconv.Atoi(accessTokenExpiryStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid ACCESS_TOKEN_EXPIRY_MINUTES: %w", err)
+	}
+
+	refreshTokenExpiryStr := getEnv("REFRESH_TOKEN_EXPIRY_DAYS", "7")
+	refreshTokenExpiryDays, err := strconv.Atoi(refreshTokenExpiryStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid REFRESH_TOKEN_EXPIRY_DAYS: %w", err)
+	}
+
 	cfg := &Config{
-		DBUser:     getEnv("DB_USER", "root"),
-		DBPassword: getEnv("DB_PASSWORD", ""),
-		DBHost:     getEnv("DB_HOST", "127.0.0.1"),
-		DBPort:     getEnv("DB_PORT", "3306"),
-		DBName:     getEnv("DB_NAME", "xyz_multifinance"),
-		APIPort:    getEnv("API_PORT", "8080"),
+		DBUser:             getEnv("DB_USER", "root"),
+		DBPassword:         getEnv("DB_PASSWORD", ""),
+		DBHost:             getEnv("DB_HOST", "127.0.0.1"),
+		DBPort:             getEnv("DB_PORT", "3306"),
+		DBName:             getEnv("DB_NAME", "xyz_multifinance"),
+		APIPort:            getEnv("API_PORT", "8080"),
+		JWTSecret:          getEnv("JWT_SECRET", "qwoaoiscmoaqoiwdmomocmosmc"),
+		JWTRefreshSecret:   getEnv("JWT_REFRESH_SECRET", "owqopkdfmvzxmcdvcpqpwo"),
+		AccessTokenExpiry:  time.Duration(accessTokenExpiryMinutes) * time.Minute,
+		RefreshTokenExpiry: time.Duration(refreshTokenExpiryDays) * 24 * time.Hour,
 	}
 
 	if cfg.DBUser == "" || cfg.DBPassword == "" || cfg.DBHost == "" || cfg.DBPort == "" || cfg.DBName == "" || cfg.APIPort == "" {

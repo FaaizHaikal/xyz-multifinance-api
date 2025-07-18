@@ -7,6 +7,7 @@ import (
 	"xyz-multifinance-api/internal/domain"
 	"xyz-multifinance-api/internal/model"
 	"xyz-multifinance-api/internal/usecase"
+	"xyz-multifinance-api/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,15 +16,12 @@ type CreditLimitHandler struct {
 	useCase *usecase.CreditLimitUseCase
 }
 
-func NewCreditLimitHandler(router *gin.Engine, creditLimitUseCase *usecase.CreditLimitUseCase) {
+func NewCreditLimitHandler(router *gin.RouterGroup, creditLimitUseCase *usecase.CreditLimitUseCase) {
 	handler := &CreditLimitHandler{useCase: creditLimitUseCase}
 
-	v1 := router.Group("/api/v1")
-	{
-		v1.POST("/credit-limits", handler.SetCustomerCreditLimit)
-		v1.GET("/customers/:id/credit-limits", handler.GetCustomerCreditLimits)
-		v1.GET("/customers/:id/credit-limits/:tenor_months", handler.GetCustomerCreditLimitByTenor)
-	}
+	router.POST("/credit-limits", handler.SetCustomerCreditLimit)
+	router.GET("/customers/:customer_id/credit-limits", handler.GetCustomerCreditLimits)
+	router.GET("/customers/:customer_id/credit-limits/:tenor_months", handler.GetCustomerCreditLimitByTenor)
 }
 
 func (h *CreditLimitHandler) SetCustomerCreditLimit(ctx *gin.Context) {
@@ -55,8 +53,12 @@ func (h *CreditLimitHandler) SetCustomerCreditLimit(ctx *gin.Context) {
 func (h *CreditLimitHandler) GetCustomerCreditLimits(ctx *gin.Context) {
 	customerID := ctx.Param("customer_id")
 	if customerID == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "customer ID is required"})
-		return
+		authCustomerID, exists := middleware.GetCustomerIDFromContext(ctx)
+		if !exists {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Customer ID not found in token or path."})
+			return
+		}
+		customerID = authCustomerID
 	}
 
 	creditLimitsRes, err := h.useCase.GetCustomerCreditLimits(customerID)
@@ -77,9 +79,13 @@ func (h *CreditLimitHandler) GetCustomerCreditLimitByTenor(ctx *gin.Context) {
 	customerID := ctx.Param("customer_id")
 	tenorMonthsStr := ctx.Param("tenor_months")
 
-	if customerID == "" || tenorMonthsStr == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "customer ID and tenor months are required"})
-		return
+	if customerID == "" {
+		authCustomerID, exists := middleware.GetCustomerIDFromContext(ctx)
+		if !exists {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Customer ID not found in token or path."})
+			return
+		}
+		customerID = authCustomerID
 	}
 
 	tenorMonths, err := strconv.Atoi(tenorMonthsStr)
