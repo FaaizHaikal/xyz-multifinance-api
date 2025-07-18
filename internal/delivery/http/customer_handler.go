@@ -10,10 +10,10 @@ import (
 )
 
 type CustomerHandler struct {
-	useCase usecase.CustomerUseCase
+	useCase *usecase.CustomerUseCase
 }
 
-func NewCustomerHandler(router *gin.Engine, useCase usecase.CustomerUseCase) {
+func NewCustomerHandler(router *gin.Engine, useCase *usecase.CustomerUseCase) {
 	handler := &CustomerHandler{useCase: useCase}
 
 	v1 := router.Group("/api/v1")

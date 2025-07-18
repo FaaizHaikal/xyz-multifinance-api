@@ -12,11 +12,11 @@ import (
 )
 
 type CustomerUseCase struct {
-	repo      repository.CustomerRepository
+	repo      *repository.CustomerRepository
 	validator *validator.Validate
 }
 
-func NewCustomerUseCase(customerRepo repository.CustomerRepository) *CustomerUseCase {
+func NewCustomerUseCase(customerRepo *repository.CustomerRepository) *CustomerUseCase {
 	return &CustomerUseCase{
 		repo:      customerRepo,
 		validator: validator.New(),

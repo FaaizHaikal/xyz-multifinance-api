@@ -14,17 +14,17 @@ import (
 
 type TransactionUseCase struct {
 	db              *gorm.DB // DB instance for transaction management
-	transactionRepo repository.TransactionRepository
-	customerRepo    repository.CustomerRepository
-	creditLimitRepo repository.CreditLimitRepository
+	transactionRepo *repository.TransactionRepository
+	customerRepo    *repository.CustomerRepository
+	creditLimitRepo *repository.CreditLimitRepository
 	validator       *validator.Validate
 }
 
 func NewTransactionUseCase(
 	db *gorm.DB,
-	transactionRepo repository.TransactionRepository,
-	customerRepo repository.CustomerRepository,
-	creditLimitRepo repository.CreditLimitRepository,
+	transactionRepo *repository.TransactionRepository,
+	customerRepo *repository.CustomerRepository,
+	creditLimitRepo *repository.CreditLimitRepository,
 ) *TransactionUseCase {
 	return &TransactionUseCase{
 		db:              db,

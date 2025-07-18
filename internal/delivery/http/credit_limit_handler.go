@@ -12,10 +12,10 @@ import (
 )
 
 type CreditLimitHandler struct {
-	useCase usecase.CreditLimitUseCase
+	useCase *usecase.CreditLimitUseCase
 }
 
-func NewCreditLimitHandler(router *gin.Engine, creditLimitUseCase usecase.CreditLimitUseCase) {
+func NewCreditLimitHandler(router *gin.Engine, creditLimitUseCase *usecase.CreditLimitUseCase) {
 	handler := &CreditLimitHandler{useCase: creditLimitUseCase}
 
 	v1 := router.Group("/api/v1")

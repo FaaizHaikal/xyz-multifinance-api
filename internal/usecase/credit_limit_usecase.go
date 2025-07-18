@@ -11,12 +11,12 @@ import (
 )
 
 type CreditLimitUseCase struct {
-	creditLimitRepo repository.CreditLimitRepository
-	customerRepo    repository.CustomerRepository
+	creditLimitRepo *repository.CreditLimitRepository
+	customerRepo    *repository.CustomerRepository
 	validator       *validator.Validate
 }
 
-func NewCreditLimitUseCase(creditLimitRepo repository.CreditLimitRepository, customerRepo repository.CustomerRepository) *CreditLimitUseCase {
+func NewCreditLimitUseCase(creditLimitRepo *repository.CreditLimitRepository, customerRepo *repository.CustomerRepository) *CreditLimitUseCase {
 	return &CreditLimitUseCase{
 		creditLimitRepo: creditLimitRepo,
 		customerRepo:    customerRepo,

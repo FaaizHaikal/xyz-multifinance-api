@@ -11,10 +11,10 @@ import (
 )
 
 type TransactionHandler struct {
-	useCase usecase.TransactionUseCase
+	useCase *usecase.TransactionUseCase
 }
 
-func NewTransactionHandler(router *gin.Engine, transactionUseCase usecase.TransactionUseCase) {
+func NewTransactionHandler(router *gin.Engine, transactionUseCase *usecase.TransactionUseCase) {
 	handler := &TransactionHandler{useCase: transactionUseCase}
 
 	v1 := router.Group("/api/v1")
