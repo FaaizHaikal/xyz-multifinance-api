@@ -37,7 +37,7 @@ func (uc *authUseCase) Login(req *model.LoginRequest) (*model.LoginResponse, err
 	customer, err := uc.customerRepo.FindByNIK(req.NIK)
 	if err != nil {
 		if err == domain.ErrNotFound {
-			return nil, fmt.Errorf("%w: invalid credentials", domain.ErrInvalidInput)
+			return nil, fmt.Errorf("%w: customer not found", domain.ErrInvalidInput)
 		}
 		return nil, fmt.Errorf("%w: failed to retrieve customer for login: %v", domain.ErrInternalServerError, err)
 	}
@@ -81,15 +81,15 @@ func (uc *authUseCase) Register(req *model.RegisterCustomerRequest) (*model.Cust
 	}
 
 	customer := &domain.Customer{
-		NIK:            req.NIK,
-		FullName:       req.FullName,
-		Password:       string(hashedPassword),
-		LegalName:      req.LegalName,
-		BirthPlace:     req.BirthPlace,
-		BirthDate:      birthDate,
-		Salary:         req.Salary,
-		KTPPhotoURL:    req.KTPPhotoURL,
-		SelfiePhotoURL: req.SelfiePhotoURL,
+		NIK:         req.NIK,
+		FullName:    req.FullName,
+		Password:    string(hashedPassword),
+		LegalName:   req.LegalName,
+		BirthPlace:  req.BirthPlace,
+		BirthDate:   birthDate,
+		Salary:      req.Salary,
+		KTPPhoto:    req.KTPPhoto,
+		SelfiePhoto: req.SelfiePhoto,
 	}
 
 	err = uc.customerRepo.Create(customer)
@@ -101,17 +101,17 @@ func (uc *authUseCase) Register(req *model.RegisterCustomerRequest) (*model.Cust
 	}
 
 	return &model.CustomerResponse{
-		ID:             customer.ID,
-		NIK:            customer.NIK,
-		FullName:       customer.FullName,
-		LegalName:      customer.LegalName,
-		BirthPlace:     customer.BirthPlace,
-		BirthDate:      customer.BirthDate,
-		Salary:         customer.Salary,
-		KTPPhotoURL:    customer.KTPPhotoURL,
-		SelfiePhotoURL: customer.SelfiePhotoURL,
-		CreatedAt:      customer.CreatedAt,
-		UpdatedAt:      customer.UpdatedAt,
+		ID:          customer.ID,
+		NIK:         customer.NIK,
+		FullName:    customer.FullName,
+		LegalName:   customer.LegalName,
+		BirthPlace:  customer.BirthPlace,
+		BirthDate:   customer.BirthDate,
+		Salary:      customer.Salary,
+		KTPPhoto:    customer.KTPPhoto,
+		SelfiePhoto: customer.SelfiePhoto,
+		CreatedAt:   customer.CreatedAt,
+		UpdatedAt:   customer.UpdatedAt,
 	}, nil
 }
 
