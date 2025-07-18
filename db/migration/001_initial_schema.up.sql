@@ -1,7 +1,7 @@
 CREATE DATABASE IF NOT EXISTS `xyz_multifinance`;
 USE `xyz_multifinance`;
 
-CREATE TABLE IF NOT EXISTS `Customer` (
+CREATE TABLE IF NOT EXISTS `customers` (
   `id` CHAR(36) PRIMARY KEY,
   `nik` VARCHAR(16) NOT NULL UNIQUE,
   `full_name` VARCHAR(100) NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS `Customer` (
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS `CreditLimit` (
+CREATE TABLE IF NOT EXISTS `credit_limits` (
   `id` CHAR(36) PRIMARY KEY,
   `customer_id` CHAR(36) NOT NULL,
   `tenor_months` INT NOT NULL,
@@ -23,10 +23,10 @@ CREATE TABLE IF NOT EXISTS `CreditLimit` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE (`customer_id`, `tenor_months`),
-  FOREIGN KEY (`customer_id`) REFERENCES `Customer` (`id`) ON DELETE CASCADE
+  FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS `Transaction` (
+CREATE TABLE IF NOT EXISTS `transactions` (
   `id` CHAR(36) PRIMARY KEY,
   `customer_id` CHAR(36) NOT NULL,
   `contract_number` VARCHAR(50) UNIQUE NOT NULL,
@@ -37,5 +37,5 @@ CREATE TABLE IF NOT EXISTS `Transaction` (
   `asset_name` VARCHAR(100),
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (`customer_id`) REFERENCES `Customer` (`id`) ON DELETE CASCADE
+  FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE
 );
