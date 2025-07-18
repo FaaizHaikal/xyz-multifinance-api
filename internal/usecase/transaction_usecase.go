@@ -24,6 +24,7 @@ type transactionUseCase struct {
 	customerRepo    domain.CustomerRepository
 	creditLimitRepo domain.CreditLimitRepository
 	validator       *validator.Validate
+	cacheStore      domain.CacheStore
 }
 
 func NewTransactionUseCase(
@@ -31,6 +32,7 @@ func NewTransactionUseCase(
 	transactionRepo domain.TransactionRepository,
 	customerRepo domain.CustomerRepository,
 	creditLimitRepo domain.CreditLimitRepository,
+	cacheStore domain.CacheStore,
 ) TransactionUseCase {
 	return &transactionUseCase{
 		db:              db,
@@ -38,6 +40,7 @@ func NewTransactionUseCase(
 		customerRepo:    customerRepo,
 		creditLimitRepo: creditLimitRepo,
 		validator:       validator.New(),
+		cacheStore:      cacheStore,
 	}
 }
 
@@ -49,8 +52,8 @@ func (uc *transactionUseCase) CreateTransaction(req *model.CreateTransactionRequ
 	var createdTransaction *domain.Transaction // The transaction created in GORM
 
 	err := uc.db.Transaction(func(tx *gorm.DB) error {
-		txCustomerRepo := repository.NewCustomerRepository(tx)
-		txCreditLimitRepo := repository.NewCreditLimitRepository(tx)
+		txCustomerRepo := repository.NewCustomerRepository(tx, uc.cacheStore)
+		txCreditLimitRepo := repository.NewCreditLimitRepository(tx, uc.cacheStore)
 		txTransactionRepo := repository.NewTransactionRepository(tx)
 
 		_, err := txCustomerRepo.FindByID(req.CustomerID)

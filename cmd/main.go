@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"xyz-multifinance-api/config"
 	"xyz-multifinance-api/internal/infrastructure/database"
-	"xyz-multifinance-api/internal/infrastructure/redis"
+	internalredis "xyz-multifinance-api/internal/infrastructure/redis"
 	"xyz-multifinance-api/internal/repository"
 	"xyz-multifinance-api/internal/usecase"
 	"xyz-multifinance-api/pkg/middleware"
@@ -27,24 +27,23 @@ func main() {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 
-	redisClient, err := redis.InitRedis(cfg)
+	redisClient, err := internalredis.InitRedisClient(cfg)
 	if err != nil {
-		log.Fatalf("Failed to initialize Redis: %v", err)
+		log.Fatalf("Failed to initialize Redis client: %v", err)
 	}
-	defer redisClient.Close()
-
-	redis.RDB = redisClient
+	cacheStore := internalredis.NewRedisCacheStore(redisClient) // NEW: Create CacheStore instance
+	defer cacheStore.Close()
 
 	router := gin.Default()
 
-	customerRepo := repository.NewCustomerRepository(gormDB)
-	creditLimitRepo := repository.NewCreditLimitRepository(gormDB)
+	customerRepo := repository.NewCustomerRepository(gormDB, cacheStore)
+	creditLimitRepo := repository.NewCreditLimitRepository(gormDB, cacheStore)
 	transactionRepo := repository.NewTransactionRepository(gormDB)
 
 	authUseCase := usecase.NewAuthUseCase(customerRepo, cfg)
 	customerUseCase := usecase.NewCustomerUseCase(customerRepo)
 	creditLimitUseCase := usecase.NewCreditLimitUseCase(creditLimitRepo, customerRepo)
-	transactionUseCase := usecase.NewTransactionUseCase(gormDB, transactionRepo, customerRepo, creditLimitRepo)
+	transactionUseCase := usecase.NewTransactionUseCase(gormDB, transactionRepo, customerRepo, creditLimitRepo, cacheStore)
 
 	apphttp.NewAuthHandler(router, authUseCase)
 
@@ -54,7 +53,7 @@ func main() {
 		middleware.RateLimitMiddleware(middleware.RateLimiterConfig{
 			RequestsPerSecond: cfg.RateLimitPerSecond,
 			Burst:             cfg.RateLimitBurst,
-		}),
+		}, redisClient),
 	)
 	{
 		apphttp.NewCustomerHandler(protectedV1, customerUseCase)

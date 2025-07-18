@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 	"xyz-multifinance-api/internal/domain"
-	"xyz-multifinance-api/internal/infrastructure/redis"
 	"xyz-multifinance-api/pkg/utils"
 
 	"github.com/google/uuid"
@@ -13,11 +12,12 @@ import (
 )
 
 type customerRepository struct {
-	db *gorm.DB
+	db         *gorm.DB
+	cacheStore domain.CacheStore
 }
 
-func NewCustomerRepository(db *gorm.DB) domain.CustomerRepository {
-	return &customerRepository{db}
+func NewCustomerRepository(db *gorm.DB, cacheStore domain.CacheStore) domain.CustomerRepository {
+	return &customerRepository{db, cacheStore}
 }
 
 func (r *customerRepository) Create(customer *domain.Customer) error {
@@ -36,15 +36,15 @@ func (r *customerRepository) Create(customer *domain.Customer) error {
 	}
 
 	// Cache for 1 hour
-	redis.Set(fmt.Sprintf("customer:%s", customer.ID), customerJSON, time.Hour)
-	redis.Set(fmt.Sprintf("customer_nik:%s", customer.NIK), customerJSON, time.Hour)
+	r.cacheStore.Set(fmt.Sprintf("customer:%s", customer.ID), customerJSON, time.Hour)
+	r.cacheStore.Set(fmt.Sprintf("customer_nik:%s", customer.NIK), customerJSON, time.Hour)
 
 	return nil
 }
 
 func (r *customerRepository) FindByID(id string) (*domain.Customer, error) {
 	cacheKey := fmt.Sprintf("customer:%s", id)
-	if cachedCustomerJSON, err := redis.Get(cacheKey); err == nil {
+	if cachedCustomerJSON, err := r.cacheStore.Get(cacheKey); err == nil {
 		customer := &domain.Customer{}
 		if err := utils.UnmarshalJSON(cachedCustomerJSON, customer); err == nil {
 			return customer, nil // Cache hit
@@ -65,15 +65,15 @@ func (r *customerRepository) FindByID(id string) (*domain.Customer, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal customer for cache: %w", err)
 	}
-	redis.Set(cacheKey, customerJSON, time.Hour)
-	redis.Set(fmt.Sprintf("customer_nik:%s", customer.NIK), customerJSON, time.Hour) // Also cache by NIK
+	r.cacheStore.Set(cacheKey, customerJSON, time.Hour)
+	r.cacheStore.Set(fmt.Sprintf("customer_nik:%s", customer.NIK), customerJSON, time.Hour) // Also cache by NIK
 
 	return customer, nil
 }
 
 func (r *customerRepository) FindByNIK(nik string) (*domain.Customer, error) {
 	cacheKey := fmt.Sprintf("customer_nik:%s", nik)
-	if cachedCustomerJSON, err := redis.Get(cacheKey); err == nil {
+	if cachedCustomerJSON, err := r.cacheStore.Get(cacheKey); err == nil {
 		customer := &domain.Customer{}
 		if err := utils.UnmarshalJSON(cachedCustomerJSON, customer); err == nil {
 			return customer, nil // Cache hit
@@ -94,8 +94,8 @@ func (r *customerRepository) FindByNIK(nik string) (*domain.Customer, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal customer for cache: %w", err)
 	}
-	redis.Set(cacheKey, customerJSON, time.Hour)
-	redis.Set(fmt.Sprintf("customer:%s", customer.ID), customerJSON, time.Hour) // Also cache by ID
+	r.cacheStore.Set(cacheKey, customerJSON, time.Hour)
+	r.cacheStore.Set(fmt.Sprintf("customer:%s", customer.ID), customerJSON, time.Hour) // Also cache by ID
 
 	return customer, nil
 }
