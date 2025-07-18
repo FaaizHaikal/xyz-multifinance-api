@@ -8,6 +8,7 @@ import (
 	"xyz-multifinance-api/internal/infrastructure/database"
 	"xyz-multifinance-api/internal/repository"
 	"xyz-multifinance-api/internal/usecase"
+	"xyz-multifinance-api/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
 
@@ -31,13 +32,20 @@ func main() {
 	creditLimitRepo := repository.NewCreditLimitRepository(gormDB)
 	transactionRepo := repository.NewTransactionRepository(gormDB)
 
+	authUseCase := usecase.NewAuthUseCase(customerRepo, cfg)
 	customerUseCase := usecase.NewCustomerUseCase(customerRepo)
 	creditLimitUseCase := usecase.NewCreditLimitUseCase(creditLimitRepo, customerRepo)
 	transactionUseCase := usecase.NewTransactionUseCase(gormDB, transactionRepo, customerRepo, creditLimitRepo)
 
-	apphttp.NewCustomerHandler(router, customerUseCase)
-	apphttp.NewCreditLimitHandler(router, creditLimitUseCase)
-	apphttp.NewTransactionHandler(router, transactionUseCase)
+	apphttp.NewAuthHandler(router, authUseCase)
+
+	protectedV1 := router.Group("/api/v1")
+	protectedV1.Use(middleware.JWTAuthMiddleware(cfg))
+	{
+		apphttp.NewCustomerHandler(protectedV1, customerUseCase)
+		apphttp.NewCreditLimitHandler(protectedV1, creditLimitUseCase)
+		apphttp.NewTransactionHandler(protectedV1, transactionUseCase)
+	}
 
 	serverAddress := fmt.Sprintf(":%s", cfg.APIPort)
 	log.Printf("Starting server on %s...", serverAddress)
