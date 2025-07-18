@@ -114,7 +114,12 @@ func (uc *transactionUseCase) CreateTransaction(req *model.CreateTransactionRequ
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: transaction process failed: %v", domain.ErrInternalServerError, err)
+		switch {
+		case errors.Is(err, domain.ErrNotFound), errors.Is(err, domain.ErrInsufficientCredit), errors.Is(err, domain.ErrAlreadyExists):
+			return nil, err
+		default:
+			return nil, fmt.Errorf("%w: transaction process failed: %v", domain.ErrInternalServerError, err)
+		}
 	}
 
 	return &model.TransactionResponse{
