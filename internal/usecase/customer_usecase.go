@@ -9,6 +9,7 @@ import (
 	"xyz-multifinance-api/internal/repository"
 
 	"github.com/go-playground/validator/v10"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type CustomerUseCase struct {
@@ -33,12 +34,21 @@ func (uc *CustomerUseCase) Register(req *model.RegisterCustomerRequest) (*model.
 		return nil, fmt.Errorf("%w: invalid birth date format, use YYYY-MM-DD", domain.ErrInvalidInput)
 	}
 
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed to hash password: %v", domain.ErrInternalServerError, err)
+	}
+
 	customer := &domain.Customer{
-		NIK:        req.NIK,
-		FullName:   req.FullName,
-		LegalName:  req.LegalName,
-		BirthPlace: req.BirthPlace,
-		BirthDate:  birthDate,
+		NIK:            req.NIK,
+		FullName:       req.FullName,
+		Password:       string(hashedPassword),
+		LegalName:      req.LegalName,
+		BirthPlace:     req.BirthPlace,
+		BirthDate:      birthDate,
+		Salary:         req.Salary,
+		KTPPhotoURL:    req.KTPPhotoURL,
+		SelfiePhotoURL: req.SelfiePhotoURL,
 	}
 
 	err = uc.repo.Create(customer)
