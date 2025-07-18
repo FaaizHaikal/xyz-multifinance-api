@@ -21,8 +21,8 @@ func NewCreditLimitHandler(router *gin.Engine, creditLimitUseCase *usecase.Credi
 	v1 := router.Group("/api/v1")
 	{
 		v1.POST("/credit-limits", handler.SetCustomerCreditLimit)
-		v1.GET("/customers/:customer_id/credit-limits", handler.GetCustomerCreditLimits)
-		v1.GET("/customers/:customer_id/credit-limits/:tenor_months", handler.GetCustomerCreditLimitByTenor)
+		v1.GET("/customers/:id/credit-limits", handler.GetCustomerCreditLimits)
+		v1.GET("/customers/:id/credit-limits/:tenor_months", handler.GetCustomerCreditLimitByTenor)
 	}
 }
 

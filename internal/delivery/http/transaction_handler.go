@@ -21,7 +21,7 @@ func NewTransactionHandler(router *gin.Engine, transactionUseCase *usecase.Trans
 	{
 		v1.POST("/transactions", handler.CreateTransaction)
 		v1.GET("/transactions/contract/:contract_number", handler.GetTransactionByContractNumber)
-		v1.GET("/customers/:customer_id/transactions", handler.GetTransactionsByCustomerID)
+		v1.GET("/customers/:id/transactions", handler.GetTransactionsByCustomerID)
 	}
 }
 
