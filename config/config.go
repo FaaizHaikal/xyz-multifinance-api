@@ -16,6 +16,7 @@ type Config struct {
 	DBPort             string
 	DBName             string
 	APIPort            string
+	RedisAddr          string
 	JWTSecret          string
 	JWTRefreshSecret   string
 	AccessTokenExpiry  time.Duration
@@ -60,6 +61,7 @@ func LoadConfig() (*Config, error) {
 		DBPort:             getEnv("DB_PORT", "3306"),
 		DBName:             getEnv("DB_NAME", "xyz_multifinance"),
 		APIPort:            getEnv("API_PORT", "8080"),
+		RedisAddr:          getEnv("REDIS_ADDR", "localhost:6379"),
 		JWTSecret:          getEnv("JWT_SECRET", "qwoaoiscmoaqoiwdmomocmosmc"),
 		JWTRefreshSecret:   getEnv("JWT_REFRESH_SECRET", "owqopkdfmvzxmcdvcpqpwo"),
 		AccessTokenExpiry:  time.Duration(accessTokenExpiryMinutes) * time.Minute,
