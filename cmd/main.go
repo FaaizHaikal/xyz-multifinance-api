@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"xyz-multifinance-api/config"
 	"xyz-multifinance-api/internal/infrastructure/database"
+	"xyz-multifinance-api/internal/infrastructure/redis"
 	"xyz-multifinance-api/internal/repository"
 	"xyz-multifinance-api/internal/usecase"
 	"xyz-multifinance-api/pkg/middleware"
@@ -26,6 +27,14 @@ func main() {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 
+	redisClient, err := redis.InitRedis(cfg)
+	if err != nil {
+		log.Fatalf("Failed to initialize Redis: %v", err)
+	}
+	defer redisClient.Close()
+
+	redis.RDB = redisClient
+
 	router := gin.Default()
 
 	customerRepo := repository.NewCustomerRepository(gormDB)
@@ -40,7 +49,13 @@ func main() {
 	apphttp.NewAuthHandler(router, authUseCase)
 
 	protectedV1 := router.Group("/api/v1")
-	protectedV1.Use(middleware.JWTAuthMiddleware(cfg))
+	protectedV1.Use(
+		middleware.JWTAuthMiddleware(cfg),
+		middleware.RateLimitMiddleware(middleware.RateLimiterConfig{
+			RequestsPerSecond: cfg.RateLimitPerSecond,
+			Burst:             cfg.RateLimitBurst,
+		}),
+	)
 	{
 		apphttp.NewCustomerHandler(protectedV1, customerUseCase)
 		apphttp.NewCreditLimitHandler(protectedV1, creditLimitUseCase)
