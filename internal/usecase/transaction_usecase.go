@@ -12,21 +12,27 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-type TransactionUseCase struct {
+type TransactionUseCase interface {
+	CreateTransaction(req *model.CreateTransactionRequest) (*model.TransactionResponse, error)
+	GetTransactionByContractNumber(contractNumber string) (*model.TransactionResponse, error)
+	GetTransactionsByCustomerID(customerID string) ([]model.TransactionResponse, error)
+}
+
+type transactionUseCase struct {
 	db              *gorm.DB // DB instance for transaction management
-	transactionRepo *repository.TransactionRepository
-	customerRepo    *repository.CustomerRepository
-	creditLimitRepo *repository.CreditLimitRepository
+	transactionRepo domain.TransactionRepository
+	customerRepo    domain.CustomerRepository
+	creditLimitRepo domain.CreditLimitRepository
 	validator       *validator.Validate
 }
 
 func NewTransactionUseCase(
 	db *gorm.DB,
-	transactionRepo *repository.TransactionRepository,
-	customerRepo *repository.CustomerRepository,
-	creditLimitRepo *repository.CreditLimitRepository,
-) *TransactionUseCase {
-	return &TransactionUseCase{
+	transactionRepo domain.TransactionRepository,
+	customerRepo domain.CustomerRepository,
+	creditLimitRepo domain.CreditLimitRepository,
+) TransactionUseCase {
+	return &transactionUseCase{
 		db:              db,
 		transactionRepo: transactionRepo,
 		customerRepo:    customerRepo,
@@ -35,7 +41,7 @@ func NewTransactionUseCase(
 	}
 }
 
-func (uc *TransactionUseCase) CreateTransaction(req *model.CreateTransactionRequest) (*model.TransactionResponse, error) {
+func (uc *transactionUseCase) CreateTransaction(req *model.CreateTransactionRequest) (*model.TransactionResponse, error) {
 	if err := uc.validator.Struct(req); err != nil {
 		return nil, domain.ErrInvalidInput
 	}
@@ -120,7 +126,7 @@ func (uc *TransactionUseCase) CreateTransaction(req *model.CreateTransactionRequ
 	}, nil
 }
 
-func (uc *TransactionUseCase) GetTransactionByContractNumber(contractNumber string) (*model.TransactionResponse, error) {
+func (uc *transactionUseCase) GetTransactionByContractNumber(contractNumber string) (*model.TransactionResponse, error) {
 	transaction, err := uc.transactionRepo.GetTransactionByContractNumber(contractNumber)
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
@@ -141,7 +147,7 @@ func (uc *TransactionUseCase) GetTransactionByContractNumber(contractNumber stri
 	}, nil
 }
 
-func (uc *TransactionUseCase) GetTransactionsByCustomerID(customerID string) ([]model.TransactionResponse, error) {
+func (uc *transactionUseCase) GetTransactionsByCustomerID(customerID string) ([]model.TransactionResponse, error) {
 	transactions, err := uc.transactionRepo.GetTransactionsByCustomerID(customerID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: failed to retrieve transactions: %v", domain.ErrInternalServerError, err)

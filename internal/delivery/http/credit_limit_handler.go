@@ -13,10 +13,10 @@ import (
 )
 
 type CreditLimitHandler struct {
-	useCase *usecase.CreditLimitUseCase
+	useCase usecase.CreditLimitUseCase
 }
 
-func NewCreditLimitHandler(router *gin.RouterGroup, creditLimitUseCase *usecase.CreditLimitUseCase) {
+func NewCreditLimitHandler(router *gin.RouterGroup, creditLimitUseCase usecase.CreditLimitUseCase) {
 	handler := &CreditLimitHandler{useCase: creditLimitUseCase}
 
 	router.POST("/credit-limits", handler.SetCustomerCreditLimit)

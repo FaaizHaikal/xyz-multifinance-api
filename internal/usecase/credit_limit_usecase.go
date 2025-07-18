@@ -5,26 +5,31 @@ import (
 	"fmt"
 	"xyz-multifinance-api/internal/domain"
 	"xyz-multifinance-api/internal/model"
-	"xyz-multifinance-api/internal/repository"
 
 	"github.com/go-playground/validator/v10"
 )
 
-type CreditLimitUseCase struct {
-	creditLimitRepo *repository.CreditLimitRepository
-	customerRepo    *repository.CustomerRepository
+type CreditLimitUseCase interface {
+	SetCustomerCreditLimit(req *model.SetCreditLimitRequest) (*model.CreditLimitResponse, error)
+	GetCustomerCreditLimits(customerID string) ([]model.CreditLimitResponse, error)
+	GetCustomerCreditLimitByTenor(customerID string, tenorMonths int) (*model.CreditLimitResponse, error)
+}
+
+type creditLimitUseCase struct {
+	creditLimitRepo domain.CreditLimitRepository
+	customerRepo    domain.CustomerRepository
 	validator       *validator.Validate
 }
 
-func NewCreditLimitUseCase(creditLimitRepo *repository.CreditLimitRepository, customerRepo *repository.CustomerRepository) *CreditLimitUseCase {
-	return &CreditLimitUseCase{
+func NewCreditLimitUseCase(creditLimitRepo domain.CreditLimitRepository, customerRepo domain.CustomerRepository) CreditLimitUseCase {
+	return &creditLimitUseCase{
 		creditLimitRepo: creditLimitRepo,
 		customerRepo:    customerRepo,
 		validator:       validator.New(),
 	}
 }
 
-func (uc *CreditLimitUseCase) SetCustomerCreditLimit(req *model.SetCreditLimitRequest) (*model.CreditLimitResponse, error) {
+func (uc *creditLimitUseCase) SetCustomerCreditLimit(req *model.SetCreditLimitRequest) (*model.CreditLimitResponse, error) {
 	if err := uc.validator.Struct(req); err != nil {
 		return nil, domain.ErrInvalidInput
 	}
@@ -75,7 +80,7 @@ func (uc *CreditLimitUseCase) SetCustomerCreditLimit(req *model.SetCreditLimitRe
 	}, nil
 }
 
-func (uc *CreditLimitUseCase) GetCustomerCreditLimits(customerID string) ([]model.CreditLimitResponse, error) {
+func (uc *creditLimitUseCase) GetCustomerCreditLimits(customerID string) ([]model.CreditLimitResponse, error) {
 	// Verify customer exist
 	_, err := uc.customerRepo.FindByID(customerID)
 	if err != nil {
@@ -102,7 +107,7 @@ func (uc *CreditLimitUseCase) GetCustomerCreditLimits(customerID string) ([]mode
 	return responses, nil
 }
 
-func (uc *CreditLimitUseCase) GetCustomerCreditLimitByTenor(customerID string, tenorMonths int) (*model.CreditLimitResponse, error) {
+func (uc *creditLimitUseCase) GetCustomerCreditLimitByTenor(customerID string, tenorMonths int) (*model.CreditLimitResponse, error) {
 	// Verify customer exist
 	_, err := uc.customerRepo.FindByID(customerID)
 	if err != nil {

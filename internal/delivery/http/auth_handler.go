@@ -10,10 +10,10 @@ import (
 )
 
 type AuthHandler struct {
-	useCase *usecase.AuthUseCase
+	useCase usecase.AuthUseCase
 }
 
-func NewAuthHandler(router *gin.Engine, authUseCase *usecase.AuthUseCase) {
+func NewAuthHandler(router *gin.Engine, authUseCase usecase.AuthUseCase) {
 	handler := &AuthHandler{useCase: authUseCase}
 
 	authGroup := router.Group("/api/v1/auth")

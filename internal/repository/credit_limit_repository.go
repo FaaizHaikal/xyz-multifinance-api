@@ -12,15 +12,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type CreditLimitRepository struct {
+type creditLimitRepository struct {
 	db *gorm.DB
 }
 
-func NewCreditLimitRepository(db *gorm.DB) *CreditLimitRepository {
-	return &CreditLimitRepository{db: db}
+func NewCreditLimitRepository(db *gorm.DB) domain.CreditLimitRepository {
+	return &creditLimitRepository{db: db}
 }
 
-func (r *CreditLimitRepository) CreateCreditLimit(creditLimit *domain.CreditLimit) error {
+func (r *creditLimitRepository) CreateCreditLimit(creditLimit *domain.CreditLimit) error {
 	creditLimit.ID = uuid.New().String()
 
 	result := r.db.Create(creditLimit)
@@ -42,7 +42,7 @@ func (r *CreditLimitRepository) CreateCreditLimit(creditLimit *domain.CreditLimi
 	return nil
 }
 
-func (r *CreditLimitRepository) GetCreditLimitByCustomerAndTenor(customerID string, tenorMonths int) (*domain.CreditLimit, error) {
+func (r *creditLimitRepository) GetCreditLimitByCustomerAndTenor(customerID string, tenorMonths int) (*domain.CreditLimit, error) {
 	// Try to get from cache first
 	cacheKey := fmt.Sprintf("credit_limit:%s:%d", customerID, tenorMonths)
 	if cachedLimitJSON, err := redis.Get(cacheKey); err == nil {
@@ -72,7 +72,7 @@ func (r *CreditLimitRepository) GetCreditLimitByCustomerAndTenor(customerID stri
 	return creditLimit, nil
 }
 
-func (r *CreditLimitRepository) UpdateCreditLimit(creditLimit *domain.CreditLimit) error {
+func (r *creditLimitRepository) UpdateCreditLimit(creditLimit *domain.CreditLimit) error {
 	result := r.db.Save(creditLimit)
 	if result.Error != nil {
 		return fmt.Errorf("failed to update credit limit: %w", result.Error)
@@ -87,7 +87,7 @@ func (r *CreditLimitRepository) UpdateCreditLimit(creditLimit *domain.CreditLimi
 	return nil
 }
 
-func (r *CreditLimitRepository) GetCreditLimitsByCustomerID(customerID string) ([]domain.CreditLimit, error) {
+func (r *creditLimitRepository) GetCreditLimitsByCustomerID(customerID string) ([]domain.CreditLimit, error) {
 	var creditLimits []domain.CreditLimit
 	result := r.db.Where("customer_id = ?", customerID).Find(&creditLimits)
 	if result.Error != nil {

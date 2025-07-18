@@ -12,15 +12,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type CustomerRepository struct {
+type customerRepository struct {
 	db *gorm.DB
 }
 
-func NewCustomerRepository(db *gorm.DB) *CustomerRepository {
-	return &CustomerRepository{db}
+func NewCustomerRepository(db *gorm.DB) domain.CustomerRepository {
+	return &customerRepository{db}
 }
 
-func (r *CustomerRepository) Create(customer *domain.Customer) error {
+func (r *customerRepository) Create(customer *domain.Customer) error {
 	customer.ID = uuid.New().String()
 
 	if err := r.db.Create(customer).Error; err != nil {
@@ -42,7 +42,7 @@ func (r *CustomerRepository) Create(customer *domain.Customer) error {
 	return nil
 }
 
-func (r *CustomerRepository) FindByID(id string) (*domain.Customer, error) {
+func (r *customerRepository) FindByID(id string) (*domain.Customer, error) {
 	cacheKey := fmt.Sprintf("customer:%s", id)
 	if cachedCustomerJSON, err := redis.Get(cacheKey); err == nil {
 		customer := &domain.Customer{}
@@ -71,7 +71,7 @@ func (r *CustomerRepository) FindByID(id string) (*domain.Customer, error) {
 	return customer, nil
 }
 
-func (r *CustomerRepository) FindByNIK(nik string) (*domain.Customer, error) {
+func (r *customerRepository) FindByNIK(nik string) (*domain.Customer, error) {
 	cacheKey := fmt.Sprintf("customer_nik:%s", nik)
 	if cachedCustomerJSON, err := redis.Get(cacheKey); err == nil {
 		customer := &domain.Customer{}

@@ -10,3 +10,10 @@ type CreditLimit struct {
 	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
+
+type CreditLimitRepository interface {
+	CreateCreditLimit(creditLimit *CreditLimit) error
+	GetCreditLimitByCustomerAndTenor(customerID string, tenorMonths int) (*CreditLimit, error)
+	UpdateCreditLimit(creditLimit *CreditLimit) error
+	GetCreditLimitsByCustomerID(customerID string) ([]CreditLimit, error)
+}
