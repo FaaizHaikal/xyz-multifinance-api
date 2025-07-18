@@ -23,7 +23,6 @@ func InitGORM(cfg *config.Config) (*gorm.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get generic database object: %w", err)
 	}
-	defer sqlDB.Close()
 
 	// Connection settings
 	sqlDB.SetMaxOpenConns(100)
