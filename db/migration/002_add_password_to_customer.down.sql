@@ -1,4 +1,4 @@
 USE `xyz_multifinance`;
 
-ALTER TABLE `Customer`
+ALTER TABLE `customers`
 DROP COLUMN `password`;

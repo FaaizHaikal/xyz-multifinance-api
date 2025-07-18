@@ -27,15 +27,15 @@ func Register(t *testing.T) {
 	// Test case 1: Successful registration
 	t.Run("success_registration", func(t *testing.T) {
 		req := &model.RegisterCustomerRequest{
-			NIK:            "1234567890123456",
-			FullName:       "Test User",
-			Password:       "password123",
-			LegalName:      "Test User Legal",
-			BirthPlace:     "Jakarta",
-			BirthDate:      "1990-01-01",
-			Salary:         5000000,
-			KTPPhotoURL:    "http://example.com/ktp.jpg",
-			SelfiePhotoURL: "http://example.com/selfie.jpg",
+			NIK:         "1234567890123456",
+			FullName:    "Test User",
+			Password:    "password123",
+			LegalName:   "Test User Legal",
+			BirthPlace:  "Jakarta",
+			BirthDate:   "1990-01-01",
+			Salary:      5000000,
+			KTPPhoto:    "http://example.com/ktp.jpg",
+			SelfiePhoto: "http://example.com/selfie.jpg",
 		}
 
 		mockCustomerRepo.EXPECT().FindByNIK(req.NIK).Return(nil, domain.ErrNotFound).Times(1)
@@ -60,15 +60,15 @@ func Register(t *testing.T) {
 	// Test case 2: NIK already exists
 	t.Run("nik_already_exists", func(t *testing.T) {
 		req := &model.RegisterCustomerRequest{
-			NIK:            "existingNIK12345",
-			FullName:       "Existing User",
-			Password:       "password123",
-			LegalName:      "Existing Legal",
-			BirthPlace:     "Bandung",
-			BirthDate:      "1985-03-20",
-			Salary:         6000000,
-			KTPPhotoURL:    "http://example.com/ktp_exist.jpg",
-			SelfiePhotoURL: "http://example.com/selfie_exist.jpg",
+			NIK:         "existingNIK12345",
+			FullName:    "Existing User",
+			Password:    "password123",
+			LegalName:   "Existing Legal",
+			BirthPlace:  "Bandung",
+			BirthDate:   "1985-03-20",
+			Salary:      6000000,
+			KTPPhoto:    "http://example.com/ktp_exist.jpg",
+			SelfiePhoto: "http://example.com/selfie_exist.jpg",
 		}
 
 		mockCustomerRepo.EXPECT().FindByNIK(req.NIK).Return(&domain.Customer{NIK: req.NIK}, nil).Times(1)
@@ -84,15 +84,15 @@ func Register(t *testing.T) {
 	// Test case 3: Invalid input
 	t.Run("invalid_input", func(t *testing.T) {
 		req := &model.RegisterCustomerRequest{
-			NIK:            "short", // Invalid NIK length
-			FullName:       "Invalid User",
-			Password:       "password123",
-			LegalName:      "Invalid Legal",
-			BirthPlace:     "Bogor",
-			BirthDate:      "1999-11-11",
-			Salary:         1000000,
-			KTPPhotoURL:    "http://example.com/ktp_invalid.jpg",
-			SelfiePhotoURL: "http://example.com/selfie_invalid.jpg",
+			NIK:         "short", // Invalid NIK length
+			FullName:    "Invalid User",
+			Password:    "password123",
+			LegalName:   "Invalid Legal",
+			BirthPlace:  "Bogor",
+			BirthDate:   "1999-11-11",
+			Salary:      1000000,
+			KTPPhoto:    "http://example.com/ktp_invalid.jpg",
+			SelfiePhoto: "http://example.com/selfie_invalid.jpg",
 		}
 
 		// No repository calls expected for invalid input
@@ -109,15 +109,15 @@ func Register(t *testing.T) {
 	// Test case 4: Repository creation fails
 	t.Run("repository_create_failure", func(t *testing.T) {
 		req := &model.RegisterCustomerRequest{
-			NIK:            "createfailNIK123",
-			FullName:       "Fail User",
-			Password:       "password123",
-			LegalName:      "Fail Legal",
-			BirthPlace:     "Depok",
-			BirthDate:      "2000-05-05",
-			Salary:         3000000,
-			KTPPhotoURL:    "http://example.com/ktp_fail.jpg",
-			SelfiePhotoURL: "http://example.com/selfie_fail.jpg",
+			NIK:         "createfailNIK123",
+			FullName:    "Fail User",
+			Password:    "password123",
+			LegalName:   "Fail Legal",
+			BirthPlace:  "Depok",
+			BirthDate:   "2000-05-05",
+			Salary:      3000000,
+			KTPPhoto:    "http://example.com/ktp_fail.jpg",
+			SelfiePhoto: "http://example.com/selfie_fail.jpg",
 		}
 
 		mockCustomerRepo.EXPECT().FindByNIK(req.NIK).Return(nil, domain.ErrNotFound).Times(1)

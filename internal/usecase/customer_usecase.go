@@ -31,17 +31,17 @@ func (uc *customerUseCase) GetCustomerProfileByID(id string) (*model.CustomerRes
 	}
 
 	return &model.CustomerResponse{
-		ID:             customer.ID,
-		NIK:            customer.NIK,
-		FullName:       customer.FullName,
-		LegalName:      customer.LegalName,
-		BirthPlace:     customer.BirthPlace,
-		BirthDate:      customer.BirthDate,
-		Salary:         customer.Salary,
-		KTPPhotoURL:    customer.KTPPhotoURL,
-		SelfiePhotoURL: customer.SelfiePhotoURL,
-		CreatedAt:      customer.CreatedAt,
-		UpdatedAt:      customer.UpdatedAt,
+		ID:          customer.ID,
+		NIK:         customer.NIK,
+		FullName:    customer.FullName,
+		LegalName:   customer.LegalName,
+		BirthPlace:  customer.BirthPlace,
+		BirthDate:   customer.BirthDate,
+		Salary:      customer.Salary,
+		KTPPhoto:    customer.KTPPhoto,
+		SelfiePhoto: customer.SelfiePhoto,
+		CreatedAt:   customer.CreatedAt,
+		UpdatedAt:   customer.UpdatedAt,
 	}, nil
 }
 
@@ -55,16 +55,16 @@ func (uc *customerUseCase) GetCustomerProfileByNIK(nik string) (*model.CustomerR
 	}
 
 	return &model.CustomerResponse{
-		ID:             customer.ID,
-		NIK:            customer.NIK,
-		FullName:       customer.FullName,
-		LegalName:      customer.LegalName,
-		BirthPlace:     customer.BirthPlace,
-		BirthDate:      customer.BirthDate,
-		Salary:         customer.Salary,
-		KTPPhotoURL:    customer.KTPPhotoURL,
-		SelfiePhotoURL: customer.SelfiePhotoURL,
-		CreatedAt:      customer.CreatedAt,
-		UpdatedAt:      customer.UpdatedAt,
+		ID:          customer.ID,
+		NIK:         customer.NIK,
+		FullName:    customer.FullName,
+		LegalName:   customer.LegalName,
+		BirthPlace:  customer.BirthPlace,
+		BirthDate:   customer.BirthDate,
+		Salary:      customer.Salary,
+		KTPPhoto:    customer.KTPPhoto,
+		SelfiePhoto: customer.SelfiePhoto,
+		CreatedAt:   customer.CreatedAt,
+		UpdatedAt:   customer.UpdatedAt,
 	}, nil
 }
