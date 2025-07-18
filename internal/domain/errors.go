@@ -7,4 +7,5 @@ var (
 	ErrAlreadyExists       = errors.New("already exists")
 	ErrInvalidInput        = errors.New("invalid input")
 	ErrInternalServerError = errors.New("internal server error")
+	ErrInsufficientCredit  = errors.New("insufficient credit")
 )
