@@ -47,3 +47,8 @@ This release introduces the first version of the PT XYZ Multifinance Core API. I
 ## 📝 What’s Next
 
 Upcoming releases will expand into more financial products, integrate with external systems, and introduce reporting features.
+
+## 📎 Documentation
+
+- For the **architecture diagram** and **entity relationship diagram (ERD)**, please refer to the `/docs` directory.
+- Diagrams are also embedded in the [README.md](./README.md) for quick reference.
