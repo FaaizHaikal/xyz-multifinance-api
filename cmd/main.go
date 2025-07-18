@@ -27,6 +27,12 @@ func main() {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 
+	sqlDB, err := gormDB.DB()
+	if err != nil {
+		log.Fatalf("Failed to get underlying sql.DB from GORM: %v", err)
+	}
+	defer sqlDB.Close()
+
 	redisClient, err := internalredis.InitRedisClient(cfg)
 	if err != nil {
 		log.Fatalf("Failed to initialize Redis client: %v", err)
