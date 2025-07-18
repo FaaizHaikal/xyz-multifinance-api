@@ -16,8 +16,12 @@ type AuthHandler struct {
 func NewAuthHandler(router *gin.Engine, authUseCase *usecase.AuthUseCase) {
 	handler := &AuthHandler{useCase: authUseCase}
 
-	router.POST("/api/v1/auth/login", handler.Login)
-	router.POST("/api/v1/auth/refresh", handler.RefreshToken)
+	authGroup := router.Group("/api/v1/auth")
+	{
+		authGroup.POST("/register", handler.Register)
+		authGroup.POST("/login", handler.Login)
+		authGroup.POST("/refresh", handler.RefreshToken)
+	}
 }
 
 func (h *AuthHandler) Login(ctx *gin.Context) {
@@ -39,6 +43,32 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, res)
+}
+
+func (h *AuthHandler) Register(ctx *gin.Context) {
+	req := new(model.RegisterCustomerRequest)
+
+	if err := ctx.ShouldBindJSON(req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body", "details": err.Error()})
+		return
+	}
+
+	customerResp, err := h.useCase.Register(req)
+
+	if err != nil {
+		switch err {
+		case domain.ErrInvalidInput:
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid input provided"})
+		case domain.ErrAlreadyExists:
+			ctx.JSON(http.StatusConflict, gin.H{"error": "customer with this NIK already exists"})
+		default:
+			ctx.Error(err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		}
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, customerResp)
 }
 
 func (h *AuthHandler) RefreshToken(ctx *gin.Context) {

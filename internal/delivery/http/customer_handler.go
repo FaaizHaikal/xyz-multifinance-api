@@ -3,7 +3,6 @@ package http
 import (
 	"net/http"
 	"xyz-multifinance-api/internal/domain"
-	"xyz-multifinance-api/internal/model"
 	"xyz-multifinance-api/internal/usecase"
 	"xyz-multifinance-api/pkg/middleware"
 
@@ -17,35 +16,8 @@ type CustomerHandler struct {
 func NewCustomerHandler(router *gin.RouterGroup, useCase *usecase.CustomerUseCase) {
 	handler := &CustomerHandler{useCase: useCase}
 
-	router.POST("/customers", handler.RegisterCustomer)
 	router.GET("/customers/:customer_id", handler.GetCustomerByID)
 	router.GET("/customers/nik/:nik", handler.GetCustomerByNIK)
-}
-
-func (h *CustomerHandler) RegisterCustomer(ctx *gin.Context) {
-	req := new(model.RegisterCustomerRequest)
-
-	if err := ctx.ShouldBindJSON(req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body", "details": err.Error()})
-		return
-	}
-
-	customerResp, err := h.useCase.Register(req)
-
-	if err != nil {
-		switch err {
-		case domain.ErrInvalidInput:
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid input provided"})
-		case domain.ErrAlreadyExists:
-			ctx.JSON(http.StatusConflict, gin.H{"error": "customer with this NIK already exists"})
-		default:
-			ctx.Error(err)
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
-		}
-		return
-	}
-
-	ctx.JSON(http.StatusCreated, customerResp)
 }
 
 func (h *CustomerHandler) GetCustomerByID(ctx *gin.Context) {

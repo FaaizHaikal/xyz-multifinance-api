@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	"fmt"
 	"time"
 	"xyz-multifinance-api/config"
@@ -8,6 +9,7 @@ import (
 	"xyz-multifinance-api/internal/model"
 	"xyz-multifinance-api/internal/repository"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -15,12 +17,14 @@ import (
 type AuthUseCase struct {
 	customerRepo *repository.CustomerRepository
 	cfg          *config.Config
+	validator    *validator.Validate
 }
 
 func NewAuthUseCase(customerRepo *repository.CustomerRepository, cfg *config.Config) *AuthUseCase {
 	return &AuthUseCase{
 		customerRepo: customerRepo,
 		cfg:          cfg,
+		validator:    validator.New(),
 	}
 }
 
@@ -53,6 +57,56 @@ func (uc *AuthUseCase) Login(req *model.LoginRequest) (*model.LoginResponse, err
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		ExpiresAt:    accessExpiresAt.Unix(),
+	}, nil
+}
+
+func (uc *AuthUseCase) Register(req *model.RegisterCustomerRequest) (*model.CustomerResponse, error) {
+	if err := uc.validator.Struct(req); err != nil {
+		return nil, domain.ErrInvalidInput
+	}
+
+	birthDate, err := time.Parse("2006-01-02", req.BirthDate)
+	if err != nil {
+		return nil, fmt.Errorf("%w: invalid birth date format, use YYYY-MM-DD", domain.ErrInvalidInput)
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed to hash password: %v", domain.ErrInternalServerError, err)
+	}
+
+	customer := &domain.Customer{
+		NIK:            req.NIK,
+		FullName:       req.FullName,
+		Password:       string(hashedPassword),
+		LegalName:      req.LegalName,
+		BirthPlace:     req.BirthPlace,
+		BirthDate:      birthDate,
+		Salary:         req.Salary,
+		KTPPhotoURL:    req.KTPPhotoURL,
+		SelfiePhotoURL: req.SelfiePhotoURL,
+	}
+
+	err = uc.customerRepo.Create(customer)
+	if err != nil {
+		if errors.Is(err, domain.ErrAlreadyExists) {
+			return nil, domain.ErrAlreadyExists
+		}
+		return nil, fmt.Errorf("%w: failed to create customer: %v", domain.ErrInternalServerError, err)
+	}
+
+	return &model.CustomerResponse{
+		ID:             customer.ID,
+		NIK:            customer.NIK,
+		FullName:       customer.FullName,
+		LegalName:      customer.LegalName,
+		BirthPlace:     customer.BirthPlace,
+		BirthDate:      customer.BirthDate,
+		Salary:         customer.Salary,
+		KTPPhotoURL:    customer.KTPPhotoURL,
+		SelfiePhotoURL: customer.SelfiePhotoURL,
+		CreatedAt:      customer.CreatedAt,
+		UpdatedAt:      customer.UpdatedAt,
 	}, nil
 }
 
