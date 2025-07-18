@@ -44,3 +44,8 @@ func getEnv(key, defaultValue string) string {
 
 	return defaultValue
 }
+
+func (c *Config) GetDSN() string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+		c.DBUser, c.DBPassword, c.DBHost, c.DBPort, c.DBName)
+}
