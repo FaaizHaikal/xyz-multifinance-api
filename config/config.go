@@ -20,6 +20,8 @@ type Config struct {
 	JWTRefreshSecret   string
 	AccessTokenExpiry  time.Duration
 	RefreshTokenExpiry time.Duration
+	RateLimitPerSecond int
+	RateLimitBurst     int
 }
 
 func LoadConfig() (*Config, error) {
@@ -39,6 +41,18 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("invalid REFRESH_TOKEN_EXPIRY_DAYS: %w", err)
 	}
 
+	rateLimitPerSecondStr := getEnv("RATE_LIMIT_PER_SECOND", "10")
+	rateLimitPerSecond, err := strconv.Atoi(rateLimitPerSecondStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid RATE_LIMIT_PER_SECOND: %w", err)
+	}
+
+	rateLimitBurstStr := getEnv("RATE_LIMIT_BURST", "20")
+	rateLimitBurst, err := strconv.Atoi(rateLimitBurstStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid RATE_LIMIT_BURST: %w", err)
+	}
+
 	cfg := &Config{
 		DBUser:             getEnv("DB_USER", "root"),
 		DBPassword:         getEnv("DB_PASSWORD", ""),
@@ -50,6 +64,8 @@ func LoadConfig() (*Config, error) {
 		JWTRefreshSecret:   getEnv("JWT_REFRESH_SECRET", "owqopkdfmvzxmcdvcpqpwo"),
 		AccessTokenExpiry:  time.Duration(accessTokenExpiryMinutes) * time.Minute,
 		RefreshTokenExpiry: time.Duration(refreshTokenExpiryDays) * 24 * time.Hour,
+		RateLimitPerSecond: rateLimitPerSecond,
+		RateLimitBurst:     rateLimitBurst,
 	}
 
 	if cfg.DBUser == "" || cfg.DBPassword == "" || cfg.DBHost == "" || cfg.DBPort == "" || cfg.DBName == "" || cfg.APIPort == "" {
